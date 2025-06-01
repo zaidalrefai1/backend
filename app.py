@@ -1,41 +1,22 @@
 from flask import Flask, jsonify, request
+from game_logic import Game
 from flask_cors import CORS
-import json
-import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS so frontend can access this API
 
-STATE_FILE = 'game_state.json'
+game = Game()
 
-def load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE) as f:
-            return json.load(f)
-    return {
-        "scene": "hub",
-        "level": 1,
-        "streak": 0,
-        "completed": False,
-        "base_counts": {"A": 5, "T": 5, "C": 5, "G": 5},
-        "bases": []
-    }
-
-def save_state(state):
-    with open(STATE_FILE, 'w') as f:
-        json.dump(state, f)
-
-@app.route("/game-state")
+@app.route("/api/state", methods=["GET"])
 def get_state():
-    return jsonify(load_state())
+    return jsonify(game.get_state())
 
-@app.route("/update-location", methods=["POST"])
-def update_location():
+@app.route("/api/action", methods=["POST"])
+def perform_action():
     data = request.get_json()
-    state = load_state()
-    state["scene"] = data.get("location", "hub")
-    save_state(state)
-    return jsonify({"status": "success"})
+    action = data.get("action")
+    game.handle_action(action)
+    return jsonify(success=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
