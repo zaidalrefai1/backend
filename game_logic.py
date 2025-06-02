@@ -1,3 +1,5 @@
+
+
 class DifficultyModel:
     def __init__(self):
         self.streak = 0
